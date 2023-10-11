@@ -15,6 +15,11 @@ public class UserController {
 
   @PostMapping("/")
   public UserModel Create(@RequestBody UserModel userModel) {
+    var user = this.userRepository.findByUsername(userModel.getUsername());
+
+    if (user != null) {
+      System.out.println("Usuário já cadastrado");
+    }
     var userCreated = this.userRepository.save(userModel);
 
     return userCreated;
