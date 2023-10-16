@@ -26,7 +26,8 @@ public class FilterTaskAuth extends OncePerRequestFilter {
       throws ServletException, IOException {
     var servletPath = request.getServletPath();
 
-    if (servletPath == "/tasks/") {
+    if (servletPath.equals("/tasks/")) {
+
       var authorization = request.getHeader("Authorization");
       var auth_encoded = authorization.substring("Basic".length()).trim();
 
@@ -47,6 +48,7 @@ public class FilterTaskAuth extends OncePerRequestFilter {
 
         if (passwordVerify.verified) {
           request.setAttribute("idUser", user.getId());
+          System.out.println("User " + user.getId());
           filterChain.doFilter(request, response);
         } else {
           response.sendError(401, "Unathourized password");
