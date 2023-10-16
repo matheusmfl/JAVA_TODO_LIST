@@ -24,30 +24,39 @@ public class FilterTaskAuth extends OncePerRequestFilter {
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    var authorization = request.getHeader("Authorization");
-    var auth_encoded = authorization.substring("Basic".length()).trim();
+    var servletPath = request.getServletPath();
 
-    byte[] auth_decoded = Base64.getDecoder().decode(auth_encoded);
+    if (servletPath == "/tasks/") {
+      var authorization = request.getHeader("Authorization");
+      var auth_encoded = authorization.substring("Basic".length()).trim();
 
-    var auth_string = new String(auth_decoded);
+      byte[] auth_decoded = Base64.getDecoder().decode(auth_encoded);
 
-    String[] credentials = auth_string.split(":");
-    String username = credentials[0];
-    String password = credentials[1];
+      var auth_string = new String(auth_decoded);
 
-    var user = this.userRepository.findByUsername(username);
+      String[] credentials = auth_string.split(":");
+      String username = credentials[0];
+      String password = credentials[1];
 
-    if (user == null) {
-      response.sendError(401, "User does not exist");
-    } else {
-      var passwordVerify = BCrypt.verifyer().verify(password.toCharArray(), user.getPassword());
+      var user = this.userRepository.findByUsername(username);
 
-      if (passwordVerify.verified) {
-        filterChain.doFilter(request, response);
+      if (user == null) {
+        response.sendError(401, "User does not exist");
       } else {
-        response.sendError(401, "Unathourized password");
+        var passwordVerify = BCrypt.verifyer().verify(password.toCharArray(), user.getPassword());
+
+        if (passwordVerify.verified) {
+          filterChain.doFilter(request, response);
+        } else {
+          response.sendError(401, "Unathourized password");
+        }
+
       }
 
+    }
+
+    else {
+      filterChain.doFilter(request, response);
     }
 
   }
